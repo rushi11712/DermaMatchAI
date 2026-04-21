@@ -66,6 +66,23 @@ const skinData = {
     }
 };
 
+function startAssessment() {
+    document.getElementById('landing-page').classList.add('hidden');
+    document.getElementById('assessment-flow').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Reset state
+    stepHistory = [1];
+    userProfile = {};
+    renderView(1);
+}
+
+function exitAssessment() {
+    document.getElementById('landing-page').classList.remove('hidden');
+    document.getElementById('assessment-flow').classList.add('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 function renderView(stepID) {
     const container = document.getElementById('app-container');
     const backBtn = document.getElementById('back-btn');
@@ -82,16 +99,16 @@ function renderView(stepID) {
     container.innerHTML = `
         <div class="view-enter">
             <div class="text-center mb-10">
-                <h2 class="text-2xl font-extrabold text-slate-900 mb-2">${data.title}</h2>
-                <p class="text-slate-400 text-sm font-medium">${data.subtitle}</p>
+                <h2 class="text-2xl lg:text-3xl font-extrabold text-slate-900 mb-3">${data.title}</h2>
+                <p class="text-slate-500 text-sm font-medium">${data.subtitle}</p>
             </div>
             <div class="space-y-4">
                 ${data.options.map(opt => `
                     <div onclick="processSelection('${opt.id}')" class="option-card flex items-center p-4 rounded-3xl cursor-pointer">
-                        ${opt.img ? `<div class="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-slate-50"><img src="${opt.img}" class="w-full h-full object-cover"></div>` : ''}
+                        ${opt.img ? `<div class="w-16 h-16 rounded-full overflow-hidden mr-5 border-4 border-slate-50 shadow-sm"><img src="${opt.img}" class="w-full h-full object-cover"></div>` : ''}
                         <div class="flex-1">
-                            <div class="font-bold text-slate-800">${opt.label}</div>
-                            ${opt.desc ? `<div class="text-[11px] text-slate-400 leading-tight">${opt.desc}</div>` : ''}
+                            <div class="font-bold text-slate-800 text-lg mb-1">${opt.label}</div>
+                            ${opt.desc ? `<div class="text-xs text-slate-500 leading-relaxed">${opt.desc}</div>` : ''}
                         </div>
                         <div class="custom-radio ml-4"></div>
                     </div>
@@ -134,52 +151,87 @@ function updateStepper(stepID) {
     const dots = document.querySelectorAll('.step-indicator div');
     
     let percentage = 0;
-    if (typeof stepID === 'number') percentage = (stepID - 1) * 50;
+    if (typeof stepID === 'number') percentage = ((stepID - 1) / 2) * 100;
     else percentage = 100;
 
     line.style.width = percentage + "%";
     dots.forEach((dot, i) => {
         const stepNum = i + 1;
         const isActive = (typeof stepID === 'number' && stepNum <= stepID) || stepID === "report" || typeof stepID === 'string';
-        dot.className = isActive ? "w-3 h-3 rounded-full bg-teal-600 transition-colors" : "w-3 h-3 rounded-full bg-slate-200 transition-colors";
+        dot.className = isActive ? "w-3 h-3 rounded-full bg-teal-600 transition-colors shadow-sm shadow-teal-500/50" : "w-3 h-3 rounded-full bg-slate-200 transition-colors";
     });
 }
 
 function renderReport(container) {
-    const score = 89;
+    const score = 89; // Static score for demo purposes
+    const concernLabel = userProfile.concern ? skinData[3].options.find(o => o.id === userProfile.concern).label : 'skin concerns';
+    
     container.innerHTML = `
         <div class="text-center view-enter">
-            <div class="relative w-44 h-44 mx-auto mb-8">
+            <div class="relative w-48 h-48 mx-auto mb-10">
                 <svg class="w-full h-full -rotate-90">
-                    <circle cx="88" cy="88" r="75" stroke="#f1f5f9" stroke-width="12" fill="none" />
-                    <circle id="scoreCircle" cx="88" cy="88" r="75" stroke="#0d9488" stroke-width="12" fill="none" />
+                    <circle cx="96" cy="96" r="75" stroke="#f1f5f9" stroke-width="12" fill="none" />
+                    <circle id="scoreCircle" cx="96" cy="96" r="75" stroke="#0d9488" stroke-width="12" fill="none" stroke-linecap="round" />
                 </svg>
                 <div class="absolute inset-0 flex flex-col items-center justify-center">
                     <span id="scoreVal" class="text-5xl font-black text-slate-900">0%</span>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quality</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Skin Health</span>
                 </div>
             </div>
-            <h2 class="text-2xl font-black mb-4">Assessment Complete</h2>
-            <div class="p-6 bg-slate-50 border border-slate-100 rounded-[2rem] text-left mb-8 shadow-inner">
-                <p class="text-slate-600 text-sm leading-relaxed">
-                    <span class="text-teal-600 font-bold uppercase text-[10px] block mb-1">Gemini</span>
-                    Analysis suggests high moisture retention but active ${userProfile.concern || 'skin concerns'}. 
-                    Focus on localized treatments containing <strong>Niacinamide</strong> and <strong>Vitamin C</strong>.
+            
+            <h2 class="text-3xl font-black mb-4 text-slate-900">Your Custom Protocol</h2>
+            
+            <div class="p-8 bg-slate-50 border border-slate-100 rounded-[2rem] text-left mb-10 shadow-inner relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-teal-500/5 rounded-bl-full pointer-events-none"></div>
+                
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-6 h-6 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center text-xs"><i class="fas fa-sparkles"></i></div>
+                    <span class="text-teal-700 font-bold uppercase text-[11px] tracking-wider">AI Analysis Complete</span>
+                </div>
+                
+                <p class="text-slate-600 text-[15px] leading-relaxed relative z-10">
+                    Based on our analysis, you have <strong class="text-slate-900 capitalize">${userProfile.texture || 'combination'}</strong>, <strong class="text-slate-900 capitalize">${userProfile.type || 'normal'}</strong> skin with active <strong class="text-teal-600">${concernLabel}</strong>. 
+                </p>
+                <p class="text-slate-600 text-[15px] leading-relaxed relative z-10 mt-3">
+                    Your optimal routine should focus on localized treatments containing <strong>Niacinamide</strong> to regulate sebum, and <strong>Vitamin C</strong> to target pigmentation and boost collagen synthesis.
                 </p>
             </div>
-            <button onclick="location.reload()" class="text-teal-600 font-bold underline underline-offset-8">Retake Assessment</button>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <button class="w-full sm:w-auto px-8 py-4 bg-slate-900 hover:bg-teal-600 text-white rounded-full font-bold shadow-lg transition-all hover:-translate-y-1">
+                    Get Full Routine
+                </button>
+                <button onclick="startAssessment()" class="w-full sm:w-auto px-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-bold transition-all">
+                    Retake Assessment
+                </button>
+            </div>
         </div>
     `;
 
     setTimeout(() => {
-        document.getElementById('scoreCircle').style.strokeDashoffset = 471 - (471 * score / 100);
-        let current = 0;
-        const timer = setInterval(() => {
-            if (current >= score) clearInterval(timer);
-            document.getElementById('scoreVal').innerText = current + "%";
-            current++;
-        }, 25);
+        const circle = document.getElementById('scoreCircle');
+        if (circle) {
+            circle.style.strokeDashoffset = 471 - (471 * score / 100);
+            let current = 0;
+            const timer = setInterval(() => {
+                if (current >= score) clearInterval(timer);
+                const scoreEl = document.getElementById('scoreVal');
+                if (scoreEl) scoreEl.innerText = current + "%";
+                current++;
+            }, 25);
+        }
     }, 150);
 }
 
-document.addEventListener('DOMContentLoaded', () => renderView(1));
+// Ensure smooth scrolling for navbar links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+    });
+});
