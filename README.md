@@ -1,0 +1,2 @@
+# DermaMatchAI
+Minor Project
